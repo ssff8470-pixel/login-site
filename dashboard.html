@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Главная — Live Спорт</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <!-- Шапка -->
+  <header class="header">
+    <div class="header-inner">
+      <h1 class="header-logo">⚽ LiveScore</h1>
+      <nav class="header-nav">
+        <a href="#" class="nav-link active">Все события</a>
+        <a href="#" class="nav-link">Футбол</a>
+        <a href="#" class="nav-link">Баскетбол</a>
+        <a href="#" class="nav-link">Теннис</a>
+        <a href="#" class="nav-link">Хоккей</a>
+      </nav>
+      <div class="header-user">
+        <span class="user-name">Пользователь</span>
+        <a href="index.html" class="logout-link">Выйти</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Статусная строка -->
+      <div class="status-bar">
+        <div class="status-indicator">
+          <span class="live-dot"></span>
+          <span class="live-text">LIVE</span>
+        </div>
+        <span class="status-count">В эфире: <strong id="liveCount">0</strong> | Всего: <strong id="matchCount">0</strong> событий</span>
+        <span class="status-date" id="currentDate"></span>
+      </div>
+
+      <!-- Источник данных -->
+      <div class="data-source">
+        <span>📡 Источник: OpenLigaDB API (Бундеслига — реальные данные)</span>
+      </div>
+
+      <!-- Футбол: LIVE -->
+      <section class="sport-section">
+        <h2 class="sport-title live-title">🔴 Футбол — LIVE</h2>
+        <div class="matches-grid" id="footballLive"></div>
+      </section>
+
+      <!-- Футбол: Завершённые -->
+      <section class="sport-section">
+        <h2 class="sport-title">⚽ Футбол — Завершённые</h2>
+        <div class="matches-grid" id="footballFinished"></div>
+      </section>
+
+      <!-- Футбол: Предстоящие -->
+      <section class="sport-section">
+        <h2 class="sport-title">📅 Футбол — Предстоящие</h2>
+        <div class="matches-grid" id="footballUpcoming"></div>
+      </section>
+
+      <!-- Баскетбол -->
+      <section class="sport-section">
+        <h2 class="sport-title">🏀 Баскетбол</h2>
+        <div class="matches-grid" id="basketballMatches"></div>
+      </section>
+
+      <!-- Теннис -->
+      <section class="sport-section">
+        <h2 class="sport-title">🎾 Теннис</h2>
+        <div class="matches-grid" id="tennisMatches"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Футер -->
+  <footer class="footer">
+    <p>© 2026 LiveScore. Данные обновляются каждые 30 секунд.</p>
+  </footer>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>
