@@ -1,87 +1,129 @@
 ﻿// ============================================
-//  LiveScore — реальные данные через OpenLigaDB
-//  API: https://www.openligadb.de (бесплатно, без ключа)
+//  LiveScore — реальные данные через SportAPI (RapidAPI)
+//  API: https://sportapi7.p.rapidapi.com
+//  Данные: Sofascore (футбол, баскетбол, теннис)
 // ============================================
 
-// === Реальные данные Бундеслиги (резерв, если API недоступен из-за CORS) ===
-const fallbackMatches = [
-  // Завершённые матчи 34-го тура (16 мая 2026)
-  { league: 'Бундеслига — 34 тур', home: 'Бавария', away: 'Кёльн', score: '5 : 1', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔴', awayIcon: '⚪', goals: ['H. Kane 10\'', 'H. Kane 13\'', 'S. El Mala 18\'', 'T. Bischof 22\'', 'H. Kane 69\'', 'N. Jackson 83\''] },
-  { league: 'Бундеслига — 34 тур', home: 'Айнтрахт', away: 'Штутгарт', score: '2 : 2', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '⚫', awayIcon: '⚪', goals: ['Chema Andres 10\'', 'N. Nartey 45+1\'', 'J. Burkardt 72\' (pen)', 'J. Burkardt 90+1\' (pen)'] },
-  { league: 'Бундеслига — 34 тур', home: 'Фрайбург', away: 'Лейпциг', score: '4 : 1', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔴', awayIcon: '⚪', goals: ['J. Beste 24\'', 'I. Matanovic 26\'', 'A. Ouedraogo 33\'', 'M. Ginter 47\'', 'D. Scherhant 75\''] },
-  { league: 'Бундеслига — 34 тур', home: 'Бремен', away: 'Дортмунд', score: '0 : 2', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🟢', awayIcon: '🟡', goals: ['S. Guirassy 59\'', 'Yan Couto 90+1\''] },
-  { league: 'Бундеслига — 34 тур', home: 'Гладбах', away: 'Хоффенхайм', score: '4 : 0', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '⚫', awayIcon: '🔵', goals: ['H. Bolin 14\'', 'H. Tabakovic 23\'', 'H. Tabakovic 64\'', 'R. Hack 90+1\''] },
-  { league: 'Бундеслига — 34 тур', home: 'Унион Берлин', away: 'Аугсбург', score: '4 : 0', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔴', awayIcon: '🟢', goals: ['A. Ilic 10\'', 'A. Ilic 43\'', 'A. Schäfer 54\'', 'W. Jeong 89\''] },
-  { league: 'Бундеслига — 34 тур', home: 'Леверкузен', away: 'Гамбург', score: '1 : 1', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔴', awayIcon: '🔵', goals: ['Fábio Vieira 61\'', 'Torunarigha 78\' (og)'] },
-  { league: 'Бундеслига — 34 тур', home: 'Хайденхайм', away: 'Майнц', score: '0 : 2', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔴', awayIcon: '🔴', goals: ['P. Tietz 7\'', 'N. Amiri 43\''] },
-  // Предстоящие матчи 1-го тура (август 2026) — имитируем как LIVE
-  { league: 'Бундеслига — 1 тур', home: 'Бавария', away: 'Штутгарт', score: '1 : 0', status: 'Идёт первый тайм', time: '23\'', isLive: true, isFinished: false, homeIcon: '🔴', awayIcon: '⚪', goals: ['H. Kane 12\''] },
-  { league: 'Бундеслига — 1 тур', home: 'Лейпциг', away: 'Гладбах', score: '0 : 0', status: 'Идёт первый тайм', time: '15\'', isLive: true, isFinished: false, homeIcon: '⚪', awayIcon: '⚫', goals: [] },
-  { league: 'Бундеслига — 1 тур', home: 'Дортмунд', away: 'Гамбург', score: '2 : 1', status: 'Перерыв', time: 'HT', isLive: true, isFinished: false, homeIcon: '🟡', awayIcon: '🔵', goals: ['S. Guirassy 28\'', 'J. Brandt 41\'', 'A. Hountondji 38\''] },
-  { league: 'Бундеслига — 1 тур', home: 'Байер Леверкузен', away: 'Эльверсберг', score: '0 : 0', status: 'Ожидается', time: '20:30', isLive: false, isFinished: false, homeIcon: '🔴', awayIcon: '⚫', goals: [] }
+// === Конфигурация API ===
+var API_KEY = '7133005d2fmsh76288261a465d25p18a4d9jsn35f62773a32a';
+var API_HOST = 'sportapi7.p.rapidapi.com';
+
+// === Резервные данные (если API недоступен) ===
+var fallbackMatches = [
+  { league: 'Premier League', home: 'Arsenal', away: 'Chelsea', score: '2 : 1', status: 'Идёт второй тайм', time: '67\'', isLive: true, isFinished: false, homeIcon: '🔴', awayIcon: '🔵', goals: ['Saka 23\'', 'Havertz 55\'', 'Palmer 40\''] },
+  { league: 'La Liga', home: 'Barcelona', away: 'Real Madrid', score: '1 : 1', status: 'Перерыв', time: 'HT', isLive: true, isFinished: false, homeIcon: '🔴', awayIcon: '⚪', goals: ['Lewandowski 34\'', 'Bellingham 42\''] },
+  { league: 'Bundesliga', home: 'Bayern Munich', away: 'Dortmund', score: '0 : 0', status: 'Идёт первый тайм', time: '12\'', isLive: true, isFinished: false, homeIcon: '🔴', awayIcon: '🟡', goals: [] },
+  { league: 'Serie A', home: 'Inter', away: 'Juventus', score: '3 : 1', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔵', awayIcon: '⚪', goals: ['Lautaro 15\'', 'Lautaro 38\'', 'Barella 61\'', 'Vlahovic 72\''] },
+  { league: 'Ligue 1', home: 'PSG', away: 'Marseille', score: '2 : 0', status: 'Завершён', time: 'FT', isLive: false, isFinished: true, homeIcon: '🔵', awayIcon: '🔵', goals: ['Mbappe 22\'', 'Dembélé 67\''] },
+  { league: 'Champions League', home: 'Manchester City', away: 'Liverpool', score: '0 : 0', status: 'Ожидается', time: '21:00', isLive: false, isFinished: false, homeIcon: '🔵', awayIcon: '🔴', goals: [] }
 ];
 
-// === Баскетбол и теннис — демо-данные ===
-const basketballMatches = [
-  { league: 'NBA', home: 'Лейкерс', away: 'Бостон', score: '89 : 82', status: '3-я четверть', time: 'Q3 05:24', isLive: true, homeIcon: '🟣', awayIcon: '🟢' },
-  { league: 'Евролига', home: 'ЦСКА', away: 'Реал Мадрид', score: '67 : 70', status: '4-я четверть', time: 'Q4 02:10', isLive: true, homeIcon: '🔴', awayIcon: '⚪' }
+var basketballFallback = [
+  { league: 'NBA', home: 'Lakers', away: 'Celtics', score: '89 : 82', status: '3-я четверть', time: 'Q3 05:24', isLive: true, homeIcon: '🟣', awayIcon: '🟢' },
+  { league: 'EuroLeague', home: 'CSKA', away: 'Real Madrid', score: '67 : 70', status: '4-я четверть', time: 'Q4 02:10', isLive: true, homeIcon: '🔴', awayIcon: '⚪' }
 ];
 
-const tennisMatches = [
-  { league: 'ATP — Уимблдон', home: 'Джокович Н.', away: 'Алькарас К.', score: '6 : 4', status: '2-й сет', time: '3:2', isLive: true, homeIcon: '🇷🇸', awayIcon: '🇪🇸' },
-  { league: 'WTA — Ролан Гаррос', home: 'Свёнтек И.', away: 'Сабалэнка А.', score: '4 : 6', status: '1-й сет', time: '4:5', isLive: true, homeIcon: '🇵🇱', awayIcon: '🇧🇾' }
+var tennisFallback = [
+  { league: 'ATP — Wimbledon', home: 'Djokovic N.', away: 'Alcaraz C.', score: '6 : 4', status: '2-й сет', time: '3:2', isLive: true, homeIcon: '🇷🇸', awayIcon: '🇪🇸' },
+  { league: 'WTA — Roland Garros', home: 'Swiatek I.', away: 'Sabalenka A.', score: '4 : 6', status: '1-й сет', time: '4:5', isLive: true, homeIcon: '🇵🇱', awayIcon: '🇧🇾' }
 ];
 
 // === Состояние ===
-let allFootballMatches = [];
-let liveMinute = 23; // Имитация минут матча
+var allFootballMatches = [];
+var basketballMatches = basketballFallback.slice();
+var tennisMatches = tennisFallback.slice();
+var apiAvailable = false;
 
-// === Загрузка реальных данных из OpenLigaDB ===
-async function fetchOpenLigaDB() {
+// === Получение сегодняшней даты в формате YYYY-MM-DD ===
+function getTodayDate() {
+  var now = new Date();
+  var y = now.getFullYear();
+  var m = String(now.getMonth() + 1).padStart(2, '0');
+  var d = String(now.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+
+// === Форматирование времени из timestamp ===
+function formatTime(timestamp) {
+  var d = new Date(timestamp * 1000);
+  var h = String(d.getHours()).padStart(2, '0');
+  var m = String(d.getMinutes()).padStart(2, '0');
+  return h + ':' + m;
+}
+
+// === Определение статуса матча из API ===
+function getMatchStatus(statusCode, statusDescription) {
+  // Sofascore status codes
+  if (statusCode === 100) return { status: 'Завершён', time: 'FT', isLive: false, isFinished: true };
+  if (statusCode === 0 || statusCode === 1) return { status: 'Ожидается', time: '', isLive: false, isFinished: false };
+  if (statusCode === 60) return { status: 'Отложен', time: '—', isLive: false, isFinished: false };
+  if (statusCode === 70) return { status: 'Отменён', time: '—', isLive: false, isFinished: false };
+  // Любой другой код > 0 и < 100 = идёт матч
+  return { status: statusDescription || 'В игре', time: 'LIVE', isLive: true, isFinished: false };
+}
+
+// === Загрузка матчей через SportAPI ===
+async function fetchSportAPI() {
   try {
-    // Таймаут 5 секунд — если API не отвечает, используем резервные данные
     var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, 5000);
+    var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
 
-    var response = await fetch('https://www.openligadb.de/api/getmatchdata/bl1/2025/34', {
+    var today = getTodayDate();
+    // category 1 = футбол (Европа), получаем матчи на сегодня
+    var url = 'https://' + API_HOST + '/api/v1/category/1/scheduled-events/' + today;
+
+    var response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-rapidapi-host': API_HOST,
+        'x-rapidapi-key': API_KEY
+      },
       signal: controller.signal
     });
+
     clearTimeout(timeoutId);
 
     if (!response.ok) throw new Error('API error: ' + response.status);
     var data = await response.json();
 
-    return data.map(function (m) {
-      var score1 = 0, score2 = 0;
-      if (m.matchResults && m.matchResults.length > 0) {
-        var final = m.matchResults.find(function (r) { return r.resultName === 'Endergebnis'; });
-        if (final) { score1 = final.pointsTeam1; score2 = final.pointsTeam2; }
+    if (!data.events || data.events.length === 0) {
+      console.log('API: нет матчей на сегодня');
+      return null;
+    }
+
+    console.log('API: получено ' + data.events.length + ' матчей');
+
+    return data.events.map(function (e) {
+      var homeScore = (e.homeScore && e.homeScore.current !== undefined) ? e.homeScore.current : 0;
+      var awayScore = (e.awayScore && e.awayScore.current !== undefined) ? e.awayScore.current : 0;
+      var statusInfo = getMatchStatus(e.status && e.status.code, e.status && e.status.description);
+
+      var leagueName = e.tournament ? e.tournament.name : 'Неизвестно';
+      var homeName = e.homeTeam ? e.homeTeam.name : 'Команда 1';
+      var awayName = e.awayTeam ? e.awayTeam.name : 'Команда 2';
+
+      // Время для предстоящих матчей
+      if (!statusInfo.isLive && !statusInfo.isFinished && e.startTimestamp) {
+        statusInfo.time = formatTime(e.startTimestamp);
       }
 
-      var goals = (m.goals || []).map(function (g) {
-        var min = g.matchMinute + '\'';
-        if (g.isOvertime) min += '+';
-        if (g.isPenalty) min += ' (pen)';
-        if (g.isOwnGoal) min += ' (og)';
-        return g.goalGetterName + ' ' + min;
-      });
-
       return {
-        league: 'Бундеслига — ' + m.group.groupName,
-        home: m.team1.teamName,
-        away: m.team2.teamName,
-        score: score1 + ' : ' + score2,
-        status: 'Завершён',
-        time: 'FT',
-        isLive: false,
-        isFinished: true,
+        league: leagueName,
+        home: homeName,
+        away: awayName,
+        score: homeScore + ' : ' + awayScore,
+        status: statusInfo.status,
+        time: statusInfo.time,
+        isLive: statusInfo.isLive,
+        isFinished: statusInfo.isFinished,
         homeIcon: '⚽',
         awayIcon: '⚽',
-        goals: goals
+        goals: []
       };
     });
   } catch (err) {
-    console.warn('OpenLigaDB API недоступен, используем резервные данные:', err.message);
+    console.warn('SportAPI недоступен:', err.message);
     return null;
   }
 }
@@ -90,7 +132,8 @@ async function fetchOpenLigaDB() {
 function updateDate() {
   var now = new Date();
   var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-  document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', options);
+  var el = document.getElementById('currentDate');
+  if (el) el.textContent = now.toLocaleDateString('ru-RU', options);
 }
 
 // === Создание карточки матча ===
@@ -135,7 +178,6 @@ function createMatchCard(match) {
 
 // === Отрисовка матчей ===
 function renderMatches() {
-  // Футбол — LIVE
   var liveContainer = document.getElementById('footballLive');
   var finishedContainer = document.getElementById('footballFinished');
   var upcomingContainer = document.getElementById('footballUpcoming');
@@ -172,22 +214,24 @@ function renderMatches() {
     tennisMatches.forEach(function (m) { tContainer.appendChild(createMatchCard(m)); });
   }
 
-  // Обновление счётчика
+  // Обновление счётчиков
   var total = allFootballMatches.length + basketballMatches.length + tennisMatches.length;
   var countEl = document.getElementById('matchCount');
   if (countEl) countEl.textContent = total;
 
+  var totalLive = liveCount + basketballMatches.filter(function(m){return m.isLive;}).length + tennisMatches.filter(function(m){return m.isLive;}).length;
   var liveEl = document.getElementById('liveCount');
-  if (liveEl) liveEl.textContent = liveCount + basketballMatches.filter(function(m){return m.isLive;}).length + tennisMatches.filter(function(m){return m.isLive;}).length;
+  if (liveEl) liveEl.textContent = totalLive;
 }
 
-// === Имитация обновления live-счетов ===
+// === Имитация обновления live-счетов (только для fallback) ===
 function simulateLiveUpdate() {
+  if (apiAvailable) return; // Если API работает — не имитируем
+
   allFootballMatches.forEach(function (match) {
     if (!match.isLive) return;
 
-    // Обновление минуты
-    if (match.time !== 'HT' && match.time !== 'FT') {
+    if (match.time !== 'HT' && match.time !== 'FT' && match.time !== 'LIVE') {
       var currentMin = parseInt(match.time);
       if (!isNaN(currentMin)) {
         currentMin += 1;
@@ -211,7 +255,7 @@ function simulateLiveUpdate() {
     // Случайный гол
     if (match.isLive && Math.random() > 0.75) {
       var scores = match.score.split(' : ').map(Number);
-      var scorer = ['H. Kane', 'S. Guirassy', 'J. Brandt', 'L. Díaz', 'M. Olise'][Math.floor(Math.random() * 5)];
+      var scorer = ['Saka', 'Havertz', 'Bellingham', 'Lewandowski', 'Mbappe'][Math.floor(Math.random() * 5)];
       if (Math.random() > 0.5) {
         scores[0] += 1;
         match.goals.push(scorer + ' ' + match.time);
@@ -223,16 +267,6 @@ function simulateLiveUpdate() {
     }
   });
 
-  // Баскетбол
-  basketballMatches.forEach(function (match) {
-    if (match.isLive && Math.random() > 0.4) {
-      var scores = match.score.split(' : ').map(Number);
-      scores[0] += Math.floor(Math.random() * 3) + 1;
-      scores[1] += Math.floor(Math.random() * 3) + 1;
-      match.score = scores.join(' : ');
-    }
-  });
-
   renderMatches();
 }
 
@@ -240,26 +274,34 @@ function simulateLiveUpdate() {
 async function init() {
   updateDate();
 
-  // Сначала сразу показываем fallback-данные (с live-матчами!)
+  // 1. Сразу показываем fallback-данные
   allFootballMatches = fallbackMatches.slice();
   renderMatches();
 
-  // Автообновление каждые 30 секунд
+  // 2. Автообновление fallback каждые 30 сек
   setInterval(simulateLiveUpdate, 30000);
   setInterval(updateDate, 60000);
 
-  // Параллельно пытаемся загрузить реальные данные из API
-  var realData = await fetchOpenLigaDB();
+  // 3. Пытаемся загрузить реальные данные из SportAPI
+  var realData = await fetchSportAPI();
 
   if (realData && realData.length > 0) {
-    // Реальные завершённые матчи + демо live/upcoming
-    allFootballMatches = realData.concat(fallbackMatches.filter(function (m) {
-      return m.isLive || !m.isFinished;
-    }));
+    apiAvailable = true;
+    allFootballMatches = realData;
     renderMatches();
-    console.log('Реальные данные загружены: ' + realData.length + ' матчей');
+    console.log('SportAPI: загружено ' + realData.length + ' реальных матчей');
+
+    // Обновляем реальные данные каждые 60 сек (экономия квоты API)
+    setInterval(async function () {
+      var fresh = await fetchSportAPI();
+      if (fresh && fresh.length > 0) {
+        allFootballMatches = fresh;
+        renderMatches();
+        console.log('SportAPI: обновлено ' + fresh.length + ' матчей');
+      }
+    }, 60000);
   } else {
-    console.log('Используем демо-данные (API недоступен)');
+    console.log('SportAPI недоступен — используем демо-данные');
   }
 }
 
