@@ -39,10 +39,17 @@ let liveMinute = 23; // Имитация минут матча
 // === Загрузка реальных данных из OpenLigaDB ===
 async function fetchOpenLigaDB() {
   try {
-    // Последний завершённый тур сезона 2025/2026
-    const response = await fetch('https://api.openligadb.de/getmatchdata/bl1/2025/34');
-    if (!response.ok) throw new Error('API error');
-    const data = await response.json();
+    // Таймаут 5 секунд — если API не отвечает, используем резервные данные
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 5000);
+
+    var response = await fetch('https://www.openligadb.de/api/getmatchdata/bl1/2025/34', {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) throw new Error('API error: ' + response.status);
+    var data = await response.json();
 
     return data.map(function (m) {
       var score1 = 0, score2 = 0;
@@ -233,24 +240,27 @@ function simulateLiveUpdate() {
 async function init() {
   updateDate();
 
-  // Пытаемся загрузить реальные данные
-  var realData = await fetchOpenLigaDB();
-
-  if (realData && realData.length > 0) {
-    // Используем реальные завершённые матчи + демо live/upcoming
-    allFootballMatches = realData.concat(fallbackMatches.filter(function (m) {
-      return m.isLive || !m.isFinished;
-    }));
-  } else {
-    // Только демо-данные
-    allFootballMatches = fallbackMatches;
-  }
-
+  // Сначала сразу показываем fallback-данные (с live-матчами!)
+  allFootballMatches = fallbackMatches.slice();
   renderMatches();
 
   // Автообновление каждые 30 секунд
   setInterval(simulateLiveUpdate, 30000);
   setInterval(updateDate, 60000);
+
+  // Параллельно пытаемся загрузить реальные данные из API
+  var realData = await fetchOpenLigaDB();
+
+  if (realData && realData.length > 0) {
+    // Реальные завершённые матчи + демо live/upcoming
+    allFootballMatches = realData.concat(fallbackMatches.filter(function (m) {
+      return m.isLive || !m.isFinished;
+    }));
+    renderMatches();
+    console.log('Реальные данные загружены: ' + realData.length + ' матчей');
+  } else {
+    console.log('Используем демо-данные (API недоступен)');
+  }
 }
 
 init();
